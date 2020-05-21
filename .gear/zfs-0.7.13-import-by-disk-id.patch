@@ -1,0 +1,11 @@
+--- zfs-0.7.13/etc/systemd/system/zfs-import-scan.service.in.orig	2019-03-14 04:59:29.048636869 +0000
++++ zfs-0.7.13/etc/systemd/system/zfs-import-scan.service.in	2019-03-14 05:00:31.765644607 +0000
+@@ -11,7 +11,7 @@
+ [Service]
+ Type=oneshot
+ RemainAfterExit=yes
+-ExecStart=@sbindir@/zpool import -aN -o cachefile=none
++ExecStart=@sbindir@/zpool import -aN -d /dev/disk/by-id -o cachefile=none
+ 
+ [Install]
+ WantedBy=zfs-import.target
