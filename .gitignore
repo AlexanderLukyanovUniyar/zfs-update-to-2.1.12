@@ -59,7 +59,6 @@ cscope.*
 *.rpm
 *.deb
 *.tar.gz
-*.patch
 *.orig
 *.log
 venv
