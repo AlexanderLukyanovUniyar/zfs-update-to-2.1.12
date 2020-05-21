@@ -5,7 +5,7 @@ Name: zfs
 Version: 0.8.4
 Release: alt1
 Summary: ZFS on Linux
-License: CDDL
+License: CDDL-1.0
 Group: System/Kernel and hardware
 URL: http://zfsonlinux.org/
 Conflicts: fuse-zfs
