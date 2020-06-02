@@ -149,6 +149,7 @@ fi
 %ghost %_sysconfdir/dfs/sharetab
 %exclude %_unitdir/zfs-zed.service
 %config(noreplace) %_sysconfdir/modprobe.d/zfs.conf
+%dir %_sysconfdir/zfs/zpool.d
 %config(noreplace) %_sysconfdir/zfs/zpool.d/*
 %_sysconfdir/zfs/*.example
 %_sysconfdir/modules-load.d/%name.conf
