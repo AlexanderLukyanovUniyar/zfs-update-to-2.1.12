@@ -11,6 +11,7 @@ URL: http://zfsonlinux.org/
 Conflicts: fuse-zfs
 
 Source0: %name-%version.tar
+Source1: gitrevision.h
 Patch1: zfs-0.7.13-import-by-disk-id.patch
 Patch2: zfs-0.8.4-fix-unresolved-aok.patch
 
@@ -65,6 +66,7 @@ This package contains ZFS modules sources for Linux kernel.
 %patch1 -p1
 %patch2 -p1
 sed -i 's|datarootdir|libdir|' lib/libzfs/Makefile.am
+install -m0644 %SOURCE1 include/zfs_gitrev.h
 
 %build
 %autoreconf
@@ -86,6 +88,9 @@ sed -i 's|datarootdir|libdir|' lib/libzfs/Makefile.am
 %install
 %make DESTDIR=%buildroot pkgdatadir=%_datadir/doc/%name-utils-%version/examples modulesloaddir=%_sysconfdir/modules-load.d install
 install -pDm0644 %SOURCE0 %kernel_srcdir/%name-%version.tar
+# add the header with git revision to tarball for kernel-source
+tar --append --file=%kernel_srcdir/%name-%version.tar -- ../%name-%version/include/zfs_gitrev.h
+
 gzip %kernel_srcdir/%name-%version.tar
 mkdir -p %buildroot/%_lib
 for f in %buildroot%_libdir/lib*.so; do
