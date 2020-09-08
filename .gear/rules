@@ -1,5 +1,4 @@
 spec: .gear/zfs.spec
-tar: zfs-@version@:.
-diff: zfs-@version@:. .
+tar:.
 copy?: .gear/*.patch
 copy: .gear/gitrevision.h
