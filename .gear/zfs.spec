@@ -15,7 +15,7 @@ Source1: gitrevision.h
 Patch1: zfs-0.7.13-import-by-disk-id.patch
 Patch2: zfs-0.8.4-fix-unresolved-aok.patch
 
-BuildRequires: libblkid-devel libssl-devel libudev-devel libuuid-devel python3-devel zlib-devel rpm-build-kernel
+BuildRequires: libblkid-devel libssl-devel libudev-devel libuuid-devel python3-devel zlib-devel rpm-build-kernel libtirpc-devel
 
 %description
 This package contains the ZFS command line utilities
