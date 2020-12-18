@@ -2,8 +2,8 @@
 %global _localstatedir %_var
 
 Name: zfs
-Version: 0.8.4
-Release: alt4
+Version: 0.8.6
+Release: alt1
 Summary: ZFS on Linux
 License: CDDL-1.0
 Group: System/Kernel and hardware
@@ -195,6 +195,9 @@ fi
 %_usrsrc/kernel
 
 %changelog
+* Fri Dec 18 2020 Anton Farygin <rider@altlinux.ru> 0.8.6-alt1
+- 0.8.6
+
 * Tue Sep 08 2020 Anton Farygin <rider@altlinux.ru> 0.8.4-alt4
 - applied upstream patches to the kernel-source package
 
