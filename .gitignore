@@ -59,6 +59,12 @@ cscope.*
 *.rpm
 *.deb
 *.tar.gz
+*.patch
 *.orig
 *.log
+*.tmp
 venv
+
+*.so
+*.so.debug
+*.so.full

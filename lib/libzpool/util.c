@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <sys/spa.h>
 #include <sys/fs/zfs.h>
-#include <sys/refcount.h>
+#include <sys/zfs_refcount.h>
 #include <sys/zfs_ioctl.h>
 #include <dlfcn.h>
 #include <libzutil.h>
@@ -159,7 +159,7 @@ set_global_var(char *arg)
 	char *varname = arg, *varval;
 	u_longlong_t val;
 
-#ifndef _LITTLE_ENDIAN
+#ifndef _ZFS_LITTLE_ENDIAN
 	/*
 	 * On big endian systems changing a 64-bit variable would set the high
 	 * 32 bits instead of the low 32 bits, which could cause unexpected
@@ -237,7 +237,7 @@ pool_active(void *unused, const char *name, uint64_t guid,
 	zcp->zc_nvlist_src = (uint64_t)(uintptr_t)packed;
 	zcp->zc_nvlist_src_size = size;
 
-	ret = ioctl(fd, ZFS_IOC_POOL_SYNC, zcp);
+	ret = zfs_ioctl_fd(fd, ZFS_IOC_POOL_SYNC, zcp);
 
 	fnvlist_pack_free(packed, size);
 	free((void *)(uintptr_t)zcp->zc_nvlist_dst);
