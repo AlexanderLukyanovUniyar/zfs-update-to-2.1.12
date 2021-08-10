@@ -149,14 +149,17 @@ zpl_create(struct inode *dir, struct dentry *dentry, umode_t mode, bool flag)
 	error = -zfs_create(ITOZ(dir), dname(dentry), vap, 0,
 	    mode, &zp, cr, 0, NULL);
 	if (error == 0) {
-		d_instantiate(dentry, ZTOI(zp));
-
 		error = zpl_xattr_security_init(ZTOI(zp), dir, &dentry->d_name);
 		if (error == 0)
 			error = zpl_init_acl(ZTOI(zp), dir);
 
-		if (error)
+		if (error) {
 			(void) zfs_remove(ITOZ(dir), dname(dentry), cr, 0);
+			remove_inode_hash(ZTOI(zp));
+			iput(ZTOI(zp));
+		} else {
+			d_instantiate(dentry, ZTOI(zp));
+		}
 	}
 
 	spl_fstrans_unmark(cookie);
@@ -198,14 +201,17 @@ zpl_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
 	error = -zfs_create(ITOZ(dir), dname(dentry), vap, 0,
 	    mode, &zp, cr, 0, NULL);
 	if (error == 0) {
-		d_instantiate(dentry, ZTOI(zp));
-
 		error = zpl_xattr_security_init(ZTOI(zp), dir, &dentry->d_name);
 		if (error == 0)
 			error = zpl_init_acl(ZTOI(zp), dir);
 
-		if (error)
+		if (error) {
 			(void) zfs_remove(ITOZ(dir), dname(dentry), cr, 0);
+			remove_inode_hash(ZTOI(zp));
+			iput(ZTOI(zp));
+		} else {
+			d_instantiate(dentry, ZTOI(zp));
+		}
 	}
 
 	spl_fstrans_unmark(cookie);
@@ -313,14 +319,17 @@ zpl_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
 	cookie = spl_fstrans_mark();
 	error = -zfs_mkdir(ITOZ(dir), dname(dentry), vap, &zp, cr, 0, NULL);
 	if (error == 0) {
-		d_instantiate(dentry, ZTOI(zp));
-
 		error = zpl_xattr_security_init(ZTOI(zp), dir, &dentry->d_name);
 		if (error == 0)
 			error = zpl_init_acl(ZTOI(zp), dir);
 
-		if (error)
+		if (error) {
 			(void) zfs_rmdir(ITOZ(dir), dname(dentry), NULL, cr, 0);
+			remove_inode_hash(ZTOI(zp));
+			iput(ZTOI(zp));
+		} else {
+			d_instantiate(dentry, ZTOI(zp));
+		}
 	}
 
 	spl_fstrans_unmark(cookie);
@@ -493,11 +502,14 @@ zpl_symlink(struct inode *dir, struct dentry *dentry, const char *name)
 	error = -zfs_symlink(ITOZ(dir), dname(dentry), vap,
 	    (char *)name, &zp, cr, 0);
 	if (error == 0) {
-		d_instantiate(dentry, ZTOI(zp));
-
 		error = zpl_xattr_security_init(ZTOI(zp), dir, &dentry->d_name);
-		if (error)
+		if (error) {
 			(void) zfs_remove(ITOZ(dir), dname(dentry), cr, 0);
+			remove_inode_hash(ZTOI(zp));
+			iput(ZTOI(zp));
+		} else {
+			d_instantiate(dentry, ZTOI(zp));
+		}
 	}
 
 	spl_fstrans_unmark(cookie);
@@ -545,8 +557,8 @@ zpl_get_link_common(struct dentry *dentry, struct inode *ip, char **link)
 	iov.iov_len = MAXPATHLEN;
 	iov.iov_base = kmem_zalloc(MAXPATHLEN, KM_SLEEP);
 
-	uio_t uio;
-	uio_iovec_init(&uio, &iov, 1, 0, UIO_SYSSPACE, MAXPATHLEN - 1, 0);
+	zfs_uio_t uio;
+	zfs_uio_iovec_init(&uio, &iov, 1, 0, UIO_SYSSPACE, MAXPATHLEN - 1, 0);
 
 	cookie = spl_fstrans_mark();
 	error = -zfs_readlink(ip, &uio, cr);

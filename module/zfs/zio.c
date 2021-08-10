@@ -1022,7 +1022,8 @@ zfs_blkptr_verify(spa_t *spa, const blkptr_t *bp, boolean_t config_held,
 	 * that are in the log) to be arbitrarily large.
 	 */
 	for (int i = 0; i < BP_GET_NDVAS(bp); i++) {
-		uint64_t vdevid = DVA_GET_VDEV(&bp->blk_dva[i]);
+		const dva_t *dva = &bp->blk_dva[i];
+		uint64_t vdevid = DVA_GET_VDEV(dva);
 
 		if (vdevid >= spa->spa_root_vdev->vdev_children) {
 			errors += zfs_blkptr_verify_log(spa, bp, blk_verify,
@@ -1051,10 +1052,10 @@ zfs_blkptr_verify(spa_t *spa, const blkptr_t *bp, boolean_t config_held,
 			 */
 			continue;
 		}
-		uint64_t offset = DVA_GET_OFFSET(&bp->blk_dva[i]);
-		uint64_t asize = DVA_GET_ASIZE(&bp->blk_dva[i]);
-		if (BP_IS_GANG(bp))
-			asize = vdev_psize_to_asize(vd, SPA_GANGBLOCKSIZE);
+		uint64_t offset = DVA_GET_OFFSET(dva);
+		uint64_t asize = DVA_GET_ASIZE(dva);
+		if (DVA_GET_GANG(dva))
+			asize = vdev_gang_header_asize(vd);
 		if (offset + asize > vd->vdev_asize) {
 			errors += zfs_blkptr_verify_log(spa, bp, blk_verify,
 			    "blkptr at %p DVA %u has invalid OFFSET %llu",
@@ -1091,8 +1092,8 @@ zfs_dva_valid(spa_t *spa, const dva_t *dva, const blkptr_t *bp)
 	uint64_t offset = DVA_GET_OFFSET(dva);
 	uint64_t asize = DVA_GET_ASIZE(dva);
 
-	if (BP_IS_GANG(bp))
-		asize = vdev_psize_to_asize(vd, SPA_GANGBLOCKSIZE);
+	if (DVA_GET_GANG(dva))
+		asize = vdev_gang_header_asize(vd);
 	if (offset + asize > vd->vdev_asize)
 		return (B_FALSE);
 
@@ -1726,16 +1727,16 @@ zio_write_compress(zio_t *zio)
 			return (zio);
 		} else {
 			/*
-			 * Round up compressed size up to the ashift
-			 * of the smallest-ashift device, and zero the tail.
-			 * This ensures that the compressed size of the BP
-			 * (and thus compressratio property) are correct,
+			 * Round compressed size up to the minimum allocation
+			 * size of the smallest-ashift device, and zero the
+			 * tail. This ensures that the compressed size of the
+			 * BP (and thus compressratio property) are correct,
 			 * in that we charge for the padding used to fill out
 			 * the last sector.
 			 */
-			ASSERT3U(spa->spa_min_ashift, >=, SPA_MINBLOCKSHIFT);
-			size_t rounded = (size_t)P2ROUNDUP(psize,
-			    1ULL << spa->spa_min_ashift);
+			ASSERT3U(spa->spa_min_alloc, >=, SPA_MINBLOCKSHIFT);
+			size_t rounded = (size_t)roundup(psize,
+			    spa->spa_min_alloc);
 			if (rounded >= lsize) {
 				compress = ZIO_COMPRESS_OFF;
 				zio_buf_free(cbuf, lsize);
@@ -2013,18 +2014,24 @@ zio_deadman_impl(zio_t *pio, int ziodepth)
 
 		zfs_dbgmsg("slow zio[%d]: zio=%px timestamp=%llu "
 		    "delta=%llu queued=%llu io=%llu "
-		    "path=%s last=%llu "
-		    "type=%d priority=%d flags=0x%x "
-		    "stage=0x%x pipeline=0x%x pipeline-trace=0x%x "
-		    "objset=%llu object=%llu level=%llu blkid=%llu "
-		    "offset=%llu size=%llu error=%d",
+		    "path=%s "
+		    "last=%llu type=%d "
+		    "priority=%d flags=0x%x stage=0x%x "
+		    "pipeline=0x%x pipeline-trace=0x%x "
+		    "objset=%llu object=%llu "
+		    "level=%llu blkid=%llu "
+		    "offset=%llu size=%llu "
+		    "error=%d",
 		    ziodepth, pio, pio->io_timestamp,
-		    delta, pio->io_delta, pio->io_delay,
-		    vd ? vd->vdev_path : "NULL", vq ? vq->vq_io_complete_ts : 0,
-		    pio->io_type, pio->io_priority, pio->io_flags,
-		    pio->io_stage, pio->io_pipeline, pio->io_pipeline_trace,
-		    zb->zb_objset, zb->zb_object, zb->zb_level, zb->zb_blkid,
-		    pio->io_offset, pio->io_size, pio->io_error);
+		    (u_longlong_t)delta, pio->io_delta, pio->io_delay,
+		    vd ? vd->vdev_path : "NULL",
+		    vq ? vq->vq_io_complete_ts : 0, pio->io_type,
+		    pio->io_priority, pio->io_flags, pio->io_stage,
+		    pio->io_pipeline, pio->io_pipeline_trace,
+		    (u_longlong_t)zb->zb_objset, (u_longlong_t)zb->zb_object,
+		    (u_longlong_t)zb->zb_level, (u_longlong_t)zb->zb_blkid,
+		    (u_longlong_t)pio->io_offset, (u_longlong_t)pio->io_size,
+		    pio->io_error);
 		(void) zfs_ereport_post(FM_EREPORT_ZFS_DEADMAN,
 		    pio->io_spa, vd, zb, pio, 0);
 
@@ -2268,9 +2275,7 @@ zio_nowait(zio_t *zio)
 		 * will ensure they complete prior to unloading the pool.
 		 */
 		spa_t *spa = zio->io_spa;
-		kpreempt_disable();
-		pio = spa->spa_async_zio_root[CPU_SEQID];
-		kpreempt_enable();
+		pio = spa->spa_async_zio_root[CPU_SEQID_UNSTABLE];
 
 		zio_add_child(pio, zio);
 	}
@@ -2476,7 +2481,7 @@ zio_resume_wait(spa_t *spa)
 static void
 zio_gang_issue_func_done(zio_t *zio)
 {
-	abd_put(zio->io_abd);
+	abd_free(zio->io_abd);
 }
 
 static zio_t *
@@ -2520,7 +2525,7 @@ zio_rewrite_gang(zio_t *pio, blkptr_t *bp, zio_gang_node_t *gn, abd_t *data,
 			zio_checksum_compute(zio, BP_GET_CHECKSUM(bp),
 			    buf, BP_GET_PSIZE(bp));
 
-			abd_put(buf);
+			abd_free(buf);
 		}
 		/*
 		 * If we are here to damage data for testing purposes,
@@ -2648,7 +2653,7 @@ zio_gang_tree_assemble_done(zio_t *zio)
 	ASSERT(zio->io_size == SPA_GANGBLOCKSIZE);
 	ASSERT(gn->gn_gbh->zg_tail.zec_magic == ZEC_MAGIC);
 
-	abd_put(zio->io_abd);
+	abd_free(zio->io_abd);
 
 	for (int g = 0; g < SPA_GBH_NBLKPTRS; g++) {
 		blkptr_t *gbp = &gn->gn_gbh->zg_blkptr[g];
@@ -2772,14 +2777,13 @@ zio_write_gang_done(zio_t *zio)
 	 * check for it here as it is cleared in zio_ready.
 	 */
 	if (zio->io_abd != NULL)
-		abd_put(zio->io_abd);
+		abd_free(zio->io_abd);
 }
 
 static zio_t *
-zio_write_gang_block(zio_t *pio)
+zio_write_gang_block(zio_t *pio, metaslab_class_t *mc)
 {
 	spa_t *spa = pio->io_spa;
-	metaslab_class_t *mc = spa_normal_class(spa);
 	blkptr_t *bp = pio->io_bp;
 	zio_t *gio = pio->io_gang_leader;
 	zio_t *zio;
@@ -2809,8 +2813,8 @@ zio_write_gang_block(zio_t *pio)
 		ASSERT(has_data);
 
 		flags |= METASLAB_ASYNC_ALLOC;
-		VERIFY(zfs_refcount_held(&mc->mc_alloc_slots[pio->io_allocator],
-		    pio));
+		VERIFY(zfs_refcount_held(&mc->mc_allocator[pio->io_allocator].
+		    mca_alloc_slots, pio));
 
 		/*
 		 * The logical zio has already placed a reservation for
@@ -3496,6 +3500,17 @@ zio_dva_allocate(zio_t *zio)
 		zio->io_metaslab_class = mc;
 	}
 
+	/*
+	 * Try allocating the block in the usual metaslab class.
+	 * If that's full, allocate it in the normal class.
+	 * If that's full, allocate as a gang block,
+	 * and if all are full, the allocation fails (which shouldn't happen).
+	 *
+	 * Note that we do not fall back on embedded slog (ZIL) space, to
+	 * preserve unfragmented slog space, which is critical for decent
+	 * sync write performance.  If a log allocation fails, we will fall
+	 * back to spa_sync() which is abysmal for performance.
+	 */
 	error = metaslab_alloc(spa, mc, zio->io_size, bp,
 	    zio->io_prop.zp_copies, zio->io_txg, NULL, flags,
 	    &zio->io_alloc_list, zio, zio->io_allocator);
@@ -3515,26 +3530,41 @@ zio_dva_allocate(zio_t *zio)
 			    zio->io_prop.zp_copies, zio->io_allocator, zio);
 			zio->io_flags &= ~ZIO_FLAG_IO_ALLOCATING;
 
-			mc = spa_normal_class(spa);
-			VERIFY(metaslab_class_throttle_reserve(mc,
+			VERIFY(metaslab_class_throttle_reserve(
+			    spa_normal_class(spa),
 			    zio->io_prop.zp_copies, zio->io_allocator, zio,
 			    flags | METASLAB_MUST_RESERVE));
-		} else {
-			mc = spa_normal_class(spa);
 		}
-		zio->io_metaslab_class = mc;
+		zio->io_metaslab_class = mc = spa_normal_class(spa);
+		if (zfs_flags & ZFS_DEBUG_METASLAB_ALLOC) {
+			zfs_dbgmsg("%s: metaslab allocation failure, "
+			    "trying normal class: zio %px, size %llu, error %d",
+			    spa_name(spa), zio, (u_longlong_t)zio->io_size,
+			    error);
+		}
 
 		error = metaslab_alloc(spa, mc, zio->io_size, bp,
 		    zio->io_prop.zp_copies, zio->io_txg, NULL, flags,
 		    &zio->io_alloc_list, zio, zio->io_allocator);
 	}
 
+	if (error == ENOSPC && zio->io_size > SPA_MINBLOCKSIZE) {
+		if (zfs_flags & ZFS_DEBUG_METASLAB_ALLOC) {
+			zfs_dbgmsg("%s: metaslab allocation failure, "
+			    "trying ganging: zio %px, size %llu, error %d",
+			    spa_name(spa), zio, (u_longlong_t)zio->io_size,
+			    error);
+		}
+		return (zio_write_gang_block(zio, mc));
+	}
 	if (error != 0) {
-		zfs_dbgmsg("%s: metaslab allocation failure: zio %px, "
-		    "size %llu, error %d", spa_name(spa), zio, zio->io_size,
-		    error);
-		if (error == ENOSPC && zio->io_size > SPA_MINBLOCKSIZE)
-			return (zio_write_gang_block(zio));
+		if (error != ENOSPC ||
+		    (zfs_flags & ZFS_DEBUG_METASLAB_ALLOC)) {
+			zfs_dbgmsg("%s: metaslab allocation failure: zio %px, "
+			    "size %llu, error %d",
+			    spa_name(spa), zio, (u_longlong_t)zio->io_size,
+			    error);
+		}
 		zio->io_error = error;
 	}
 
@@ -3611,19 +3641,21 @@ zio_alloc_zil(spa_t *spa, objset_t *os, uint64_t txg, blkptr_t *new_bp,
 	 * of, so we just hash the objset ID to pick the allocator to get
 	 * some parallelism.
 	 */
+	int flags = METASLAB_FASTWRITE | METASLAB_ZIL;
+	int allocator = cityhash4(0, 0, 0, os->os_dsl_dataset->ds_object) %
+	    spa->spa_alloc_count;
 	error = metaslab_alloc(spa, spa_log_class(spa), size, new_bp, 1,
-	    txg, NULL, METASLAB_FASTWRITE, &io_alloc_list, NULL,
-	    cityhash4(0, 0, 0, os->os_dsl_dataset->ds_object) %
-	    spa->spa_alloc_count);
-	if (error == 0) {
-		*slog = TRUE;
-	} else {
+	    txg, NULL, flags, &io_alloc_list, NULL, allocator);
+	*slog = (error == 0);
+	if (error != 0) {
+		error = metaslab_alloc(spa, spa_embedded_log_class(spa), size,
+		    new_bp, 1, txg, NULL, flags,
+		    &io_alloc_list, NULL, allocator);
+	}
+	if (error != 0) {
 		error = metaslab_alloc(spa, spa_normal_class(spa), size,
-		    new_bp, 1, txg, NULL, METASLAB_FASTWRITE,
-		    &io_alloc_list, NULL, cityhash4(0, 0, 0,
-		    os->os_dsl_dataset->ds_object) % spa->spa_alloc_count);
-		if (error == 0)
-			*slog = FALSE;
+		    new_bp, 1, txg, NULL, flags,
+		    &io_alloc_list, NULL, allocator);
 	}
 	metaslab_trace_fini(&io_alloc_list);
 
@@ -3657,7 +3689,8 @@ zio_alloc_zil(spa_t *spa, objset_t *os, uint64_t txg, blkptr_t *new_bp,
 		}
 	} else {
 		zfs_dbgmsg("%s: zil block allocation failure: "
-		    "size %llu, error %d", spa_name(spa), size, error);
+		    "size %llu, error %d", spa_name(spa), (u_longlong_t)size,
+		    error);
 	}
 
 	return (error);
@@ -3780,19 +3813,37 @@ zio_vdev_io_start(zio_t *zio)
 	 * However, indirect vdevs point off to other vdevs which may have
 	 * DTL's, so we never bypass them.  The child i/os on concrete vdevs
 	 * will be properly bypassed instead.
+	 *
+	 * Leaf DTL_PARTIAL can be empty when a legitimate write comes from
+	 * a dRAID spare vdev. For example, when a dRAID spare is first
+	 * used, its spare blocks need to be written to but the leaf vdev's
+	 * of such blocks can have empty DTL_PARTIAL.
+	 *
+	 * There seemed no clean way to allow such writes while bypassing
+	 * spurious ones. At this point, just avoid all bypassing for dRAID
+	 * for correctness.
 	 */
 	if ((zio->io_flags & ZIO_FLAG_IO_REPAIR) &&
 	    !(zio->io_flags & ZIO_FLAG_SELF_HEAL) &&
 	    zio->io_txg != 0 &&	/* not a delegated i/o */
 	    vd->vdev_ops != &vdev_indirect_ops &&
+	    vd->vdev_top->vdev_ops != &vdev_draid_ops &&
 	    !vdev_dtl_contains(vd, DTL_PARTIAL, zio->io_txg, 1)) {
 		ASSERT(zio->io_type == ZIO_TYPE_WRITE);
 		zio_vdev_io_bypass(zio);
 		return (zio);
 	}
 
-	if (vd->vdev_ops->vdev_op_leaf && (zio->io_type == ZIO_TYPE_READ ||
-	    zio->io_type == ZIO_TYPE_WRITE || zio->io_type == ZIO_TYPE_TRIM)) {
+	/*
+	 * Select the next best leaf I/O to process.  Distributed spares are
+	 * excluded since they dispatch the I/O directly to a leaf vdev after
+	 * applying the dRAID mapping.
+	 */
+	if (vd->vdev_ops->vdev_op_leaf &&
+	    vd->vdev_ops != &vdev_draid_spare_ops &&
+	    (zio->io_type == ZIO_TYPE_READ ||
+	    zio->io_type == ZIO_TYPE_WRITE ||
+	    zio->io_type == ZIO_TYPE_TRIM)) {
 
 		if (zio->io_type == ZIO_TYPE_READ && vdev_cache_read(zio))
 			return (zio);
@@ -3829,8 +3880,8 @@ zio_vdev_io_done(zio_t *zio)
 	if (zio->io_delay)
 		zio->io_delay = gethrtime() - zio->io_delay;
 
-	if (vd != NULL && vd->vdev_ops->vdev_op_leaf) {
-
+	if (vd != NULL && vd->vdev_ops->vdev_op_leaf &&
+	    vd->vdev_ops != &vdev_draid_spare_ops) {
 		vdev_queue_io_done(zio);
 
 		if (zio->io_type == ZIO_TYPE_WRITE)
@@ -3903,7 +3954,7 @@ zio_vsd_default_cksum_finish(zio_cksum_report_t *zcr,
 
 /*ARGSUSED*/
 void
-zio_vsd_default_cksum_report(zio_t *zio, zio_cksum_report_t *zcr, void *ignored)
+zio_vsd_default_cksum_report(zio_t *zio, zio_cksum_report_t *zcr)
 {
 	void *abd = abd_alloc_sametype(zio->io_abd, zio->io_size);
 
@@ -3968,6 +4019,9 @@ zio_vdev_io_assess(zio_t *zio)
 	 */
 	if (zio->io_error == ENXIO && zio->io_type == ZIO_TYPE_WRITE &&
 	    vd != NULL && !vd->vdev_ops->vdev_op_leaf) {
+		vdev_dbgmsg(vd, "zio_vdev_io_assess(zio=%px) setting "
+		    "cant_write=TRUE due to write failure with ENXIO",
+		    zio);
 		vd->vdev_cant_write = B_TRUE;
 	}
 
@@ -4232,22 +4286,19 @@ zio_checksum_verify(zio_t *zio)
 		if (zio->io_prop.zp_checksum == ZIO_CHECKSUM_OFF)
 			return (zio);
 
-		ASSERT(zio->io_prop.zp_checksum == ZIO_CHECKSUM_LABEL);
+		ASSERT3U(zio->io_prop.zp_checksum, ==, ZIO_CHECKSUM_LABEL);
 	}
 
 	if ((error = zio_checksum_error(zio, &info)) != 0) {
 		zio->io_error = error;
 		if (error == ECKSUM &&
 		    !(zio->io_flags & ZIO_FLAG_SPECULATIVE)) {
-			int ret = zfs_ereport_start_checksum(zio->io_spa,
+			(void) zfs_ereport_start_checksum(zio->io_spa,
 			    zio->io_vd, &zio->io_bookmark, zio,
-			    zio->io_offset, zio->io_size, NULL, &info);
-
-			if (ret != EALREADY) {
-				mutex_enter(&zio->io_vd->vdev_stat_lock);
-				zio->io_vd->vdev_stat.vs_checksum_errors++;
-				mutex_exit(&zio->io_vd->vdev_stat_lock);
-			}
+			    zio->io_offset, zio->io_size, &info);
+			mutex_enter(&zio->io_vd->vdev_stat_lock);
+			zio->io_vd->vdev_stat.vs_checksum_errors++;
+			mutex_exit(&zio->io_vd->vdev_stat_lock);
 		}
 	}
 
@@ -4476,9 +4527,8 @@ zio_done(zio_t *zio)
 
 		metaslab_group_alloc_verify(zio->io_spa, zio->io_bp, zio,
 		    zio->io_allocator);
-		VERIFY(zfs_refcount_not_held(
-		    &zio->io_metaslab_class->mc_alloc_slots[zio->io_allocator],
-		    zio));
+		VERIFY(zfs_refcount_not_held(&zio->io_metaslab_class->
+		    mc_allocator[zio->io_allocator].mca_alloc_slots, zio));
 	}
 
 

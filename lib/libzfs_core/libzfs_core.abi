@@ -369,8 +369,8 @@
     <typedef-decl name='__uint32_t' type-id='type-id-26' filepath='/usr/include/bits/types.h' line='42' column='1' id='type-id-33'/>
     <typedef-decl name='uint64_t' type-id='type-id-34' filepath='/usr/include/bits/stdint-uintn.h' line='27' column='1' id='type-id-6'/>
     <typedef-decl name='__uint64_t' type-id='type-id-3' filepath='/usr/include/bits/types.h' line='45' column='1' id='type-id-34'/>
-    <typedef-decl name='zfs_wait_activity_t' type-id='type-id-35' filepath='../../include/sys/fs/zfs.h' line='1413' column='1' id='type-id-36'/>
-    <enum-decl name='__anonymous_enum__' is-anonymous='yes' filepath='../../include/sys/fs/zfs.h' line='1410' column='1' id='type-id-35'>
+    <typedef-decl name='zfs_wait_activity_t' type-id='type-id-35' filepath='../../include/sys/fs/zfs.h' line='1427' column='1' id='type-id-36'/>
+    <enum-decl name='__anonymous_enum__' is-anonymous='yes' filepath='../../include/sys/fs/zfs.h' line='1424' column='1' id='type-id-35'>
       <underlying-type type-id='type-id-24'/>
       <enumerator name='ZFS_WAIT_DELETEQ' value='0'/>
       <enumerator name='ZFS_WAIT_NUM_ACTIVITIES' value='1'/>
@@ -381,8 +381,8 @@
       <enumerator name='B_FALSE' value='0'/>
       <enumerator name='B_TRUE' value='1'/>
     </enum-decl>
-    <typedef-decl name='zpool_wait_activity_t' type-id='type-id-39' filepath='../../include/sys/fs/zfs.h' line='1408' column='1' id='type-id-40'/>
-    <enum-decl name='__anonymous_enum__2' is-anonymous='yes' filepath='../../include/sys/fs/zfs.h' line='1398' column='1' id='type-id-39'>
+    <typedef-decl name='zpool_wait_activity_t' type-id='type-id-39' filepath='../../include/sys/fs/zfs.h' line='1422' column='1' id='type-id-40'/>
+    <enum-decl name='__anonymous_enum__2' is-anonymous='yes' filepath='../../include/sys/fs/zfs.h' line='1412' column='1' id='type-id-39'>
       <underlying-type type-id='type-id-24'/>
       <enumerator name='ZPOOL_WAIT_CKPT_DISCARD' value='0'/>
       <enumerator name='ZPOOL_WAIT_FREE' value='1'/>
@@ -394,16 +394,16 @@
       <enumerator name='ZPOOL_WAIT_TRIM' value='7'/>
       <enumerator name='ZPOOL_WAIT_NUM_ACTIVITIES' value='8'/>
     </enum-decl>
-    <typedef-decl name='pool_trim_func_t' type-id='type-id-41' filepath='../../include/sys/fs/zfs.h' line='1153' column='1' id='type-id-42'/>
-    <enum-decl name='pool_trim_func' filepath='../../include/sys/fs/zfs.h' line='1148' column='1' id='type-id-41'>
+    <typedef-decl name='pool_trim_func_t' type-id='type-id-41' filepath='../../include/sys/fs/zfs.h' line='1167' column='1' id='type-id-42'/>
+    <enum-decl name='pool_trim_func' filepath='../../include/sys/fs/zfs.h' line='1162' column='1' id='type-id-41'>
       <underlying-type type-id='type-id-24'/>
       <enumerator name='POOL_TRIM_START' value='0'/>
       <enumerator name='POOL_TRIM_CANCEL' value='1'/>
       <enumerator name='POOL_TRIM_SUSPEND' value='2'/>
       <enumerator name='POOL_TRIM_FUNCS' value='3'/>
     </enum-decl>
-    <typedef-decl name='pool_initialize_func_t' type-id='type-id-43' filepath='../../include/sys/fs/zfs.h' line='1143' column='1' id='type-id-44'/>
-    <enum-decl name='pool_initialize_func' filepath='../../include/sys/fs/zfs.h' line='1138' column='1' id='type-id-43'>
+    <typedef-decl name='pool_initialize_func_t' type-id='type-id-43' filepath='../../include/sys/fs/zfs.h' line='1157' column='1' id='type-id-44'/>
+    <enum-decl name='pool_initialize_func' filepath='../../include/sys/fs/zfs.h' line='1152' column='1' id='type-id-43'>
       <underlying-type type-id='type-id-24'/>
       <enumerator name='POOL_INITIALIZE_START' value='0'/>
       <enumerator name='POOL_INITIALIZE_CANCEL' value='1'/>
@@ -1439,37 +1439,37 @@
       <subrange length='64' type-id='type-id-3' id='type-id-110'/>
 
     </array-type-def>
-    <typedef-decl name='ddt_stat_t' type-id='type-id-111' filepath='../../include/sys/fs/zfs.h' line='1174' column='1' id='type-id-108'/>
-    <class-decl name='ddt_stat' size-in-bits='512' is-struct='yes' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1165' column='1' id='type-id-111'>
+    <typedef-decl name='ddt_stat_t' type-id='type-id-111' filepath='../../include/sys/fs/zfs.h' line='1188' column='1' id='type-id-108'/>
+    <class-decl name='ddt_stat' size-in-bits='512' is-struct='yes' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1179' column='1' id='type-id-111'>
       <data-member access='public' layout-offset-in-bits='0'>
-        <var-decl name='dds_blocks' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1166' column='1'/>
+        <var-decl name='dds_blocks' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1180' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='64'>
-        <var-decl name='dds_lsize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1167' column='1'/>
+        <var-decl name='dds_lsize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1181' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='128'>
-        <var-decl name='dds_psize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1168' column='1'/>
+        <var-decl name='dds_psize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1182' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='192'>
-        <var-decl name='dds_dsize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1169' column='1'/>
+        <var-decl name='dds_dsize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1183' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='256'>
-        <var-decl name='dds_ref_blocks' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1170' column='1'/>
+        <var-decl name='dds_ref_blocks' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1184' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='320'>
-        <var-decl name='dds_ref_lsize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1171' column='1'/>
+        <var-decl name='dds_ref_lsize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1185' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='384'>
-        <var-decl name='dds_ref_psize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1172' column='1'/>
+        <var-decl name='dds_ref_psize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1186' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='448'>
-        <var-decl name='dds_ref_dsize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1173' column='1'/>
+        <var-decl name='dds_ref_dsize' type-id='type-id-6' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1187' column='1'/>
       </data-member>
     </class-decl>
-    <typedef-decl name='ddt_histogram_t' type-id='type-id-112' filepath='../../include/sys/fs/zfs.h' line='1178' column='1' id='type-id-113'/>
-    <class-decl name='ddt_histogram' size-in-bits='32768' is-struct='yes' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1176' column='1' id='type-id-112'>
+    <typedef-decl name='ddt_histogram_t' type-id='type-id-112' filepath='../../include/sys/fs/zfs.h' line='1192' column='1' id='type-id-113'/>
+    <class-decl name='ddt_histogram' size-in-bits='32768' is-struct='yes' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1190' column='1' id='type-id-112'>
       <data-member access='public' layout-offset-in-bits='0'>
-        <var-decl name='ddh_stat' type-id='type-id-109' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1177' column='1'/>
+        <var-decl name='ddh_stat' type-id='type-id-109' visibility='default' filepath='../../include/sys/fs/zfs.h' line='1191' column='1'/>
       </data-member>
     </class-decl>
     <qualified-type-def type-id='type-id-113' const='yes' id='type-id-114'/>
@@ -1815,31 +1815,31 @@
         <var-decl name='z_sharemax' type-id='type-id-6' visibility='default' filepath='../../include/sys/zfs_ioctl.h' line='456' column='1'/>
       </data-member>
     </class-decl>
-    <typedef-decl name='dmu_objset_stats_t' type-id='type-id-160' filepath='../../include/sys/dmu.h' line='955' column='1' id='type-id-156'/>
-    <class-decl name='dmu_objset_stats' size-in-bits='2304' is-struct='yes' visibility='default' filepath='../../include/sys/dmu.h' line='946' column='1' id='type-id-160'>
+    <typedef-decl name='dmu_objset_stats_t' type-id='type-id-160' filepath='../../include/sys/dmu.h' line='943' column='1' id='type-id-156'/>
+    <class-decl name='dmu_objset_stats' size-in-bits='2304' is-struct='yes' visibility='default' filepath='../../include/sys/dmu.h' line='934' column='1' id='type-id-160'>
       <data-member access='public' layout-offset-in-bits='0'>
-        <var-decl name='dds_num_clones' type-id='type-id-6' visibility='default' filepath='../../include/sys/dmu.h' line='947' column='1'/>
+        <var-decl name='dds_num_clones' type-id='type-id-6' visibility='default' filepath='../../include/sys/dmu.h' line='935' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='64'>
-        <var-decl name='dds_creation_txg' type-id='type-id-6' visibility='default' filepath='../../include/sys/dmu.h' line='948' column='1'/>
+        <var-decl name='dds_creation_txg' type-id='type-id-6' visibility='default' filepath='../../include/sys/dmu.h' line='936' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='128'>
-        <var-decl name='dds_guid' type-id='type-id-6' visibility='default' filepath='../../include/sys/dmu.h' line='949' column='1'/>
+        <var-decl name='dds_guid' type-id='type-id-6' visibility='default' filepath='../../include/sys/dmu.h' line='937' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='192'>
-        <var-decl name='dds_type' type-id='type-id-63' visibility='default' filepath='../../include/sys/dmu.h' line='950' column='1'/>
+        <var-decl name='dds_type' type-id='type-id-63' visibility='default' filepath='../../include/sys/dmu.h' line='938' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='224'>
-        <var-decl name='dds_is_snapshot' type-id='type-id-11' visibility='default' filepath='../../include/sys/dmu.h' line='951' column='1'/>
+        <var-decl name='dds_is_snapshot' type-id='type-id-11' visibility='default' filepath='../../include/sys/dmu.h' line='939' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='232'>
-        <var-decl name='dds_inconsistent' type-id='type-id-11' visibility='default' filepath='../../include/sys/dmu.h' line='952' column='1'/>
+        <var-decl name='dds_inconsistent' type-id='type-id-11' visibility='default' filepath='../../include/sys/dmu.h' line='940' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='240'>
-        <var-decl name='dds_redacted' type-id='type-id-11' visibility='default' filepath='../../include/sys/dmu.h' line='953' column='1'/>
+        <var-decl name='dds_redacted' type-id='type-id-11' visibility='default' filepath='../../include/sys/dmu.h' line='941' column='1'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='248'>
-        <var-decl name='dds_origin' type-id='type-id-2' visibility='default' filepath='../../include/sys/dmu.h' line='954' column='1'/>
+        <var-decl name='dds_origin' type-id='type-id-2' visibility='default' filepath='../../include/sys/dmu.h' line='942' column='1'/>
       </data-member>
     </class-decl>
     <typedef-decl name='zinject_record_t' type-id='type-id-161' filepath='../../include/sys/zfs_ioctl.h' line='421' column='1' id='type-id-157'/>

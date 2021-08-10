@@ -1230,7 +1230,7 @@ zil_lwb_write_done(zio_t *zio)
 	ASSERT(!BP_IS_HOLE(zio->io_bp));
 	ASSERT(BP_GET_FILL(zio->io_bp) == 0);
 
-	abd_put(zio->io_abd);
+	abd_free(zio->io_abd);
 
 	mutex_enter(&zilog->zl_lock);
 	ASSERT3S(lwb->lwb_state, ==, LWB_STATE_ISSUED);
@@ -1960,7 +1960,7 @@ zil_itx_assign(zilog_t *zilog, itx_t *itx, dmu_tx_t *tx)
 			 * This should be rare.
 			 */
 			zfs_dbgmsg("zil_itx_assign: missed itx cleanup for "
-			    "txg %llu", itxg->itxg_txg);
+			    "txg %llu", (u_longlong_t)itxg->itxg_txg);
 			clean = itxg->itxg_itxs;
 		}
 		itxg->itxg_txg = txg;
@@ -3285,7 +3285,8 @@ zil_close(zilog_t *zilog)
 		txg_wait_synced(zilog->zl_dmu_pool, txg);
 
 	if (zilog_is_dirty(zilog))
-		zfs_dbgmsg("zil (%px) is dirty, txg %llu", zilog, txg);
+		zfs_dbgmsg("zil (%px) is dirty, txg %llu", zilog,
+		    (u_longlong_t)txg);
 	if (txg < spa_freeze_txg(zilog->zl_spa))
 		VERIFY(!zilog_is_dirty(zilog));
 

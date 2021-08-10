@@ -90,7 +90,7 @@ tests = ['devices_001_pos', 'devices_002_neg', 'devices_003_pos']
 tags = ['functional', 'devices']
 
 [tests/functional/events:Linux]
-tests = ['events_001_pos', 'events_002_pos', 'zed_rc_filter']
+tests = ['events_001_pos', 'events_002_pos', 'zed_rc_filter', 'zed_fd_spill']
 tags = ['functional', 'events']
 
 [tests/functional/fallocate:Linux]
@@ -109,7 +109,7 @@ tests = ['large_dnode_002_pos', 'large_dnode_006_pos', 'large_dnode_008_pos']
 tags = ['functional', 'features', 'large_dnode']
 
 [tests/functional/io:Linux]
-tests = ['libaio']
+tests = ['libaio', 'io_uring']
 tags = ['functional', 'io']
 
 [tests/functional/mmap:Linux]
