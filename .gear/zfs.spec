@@ -7,8 +7,8 @@ Release: alt1
 Summary: ZFS on Linux
 License: CDDL-1.0
 Group: System/Kernel and hardware
-# VCS: https://github.com/openzfs/zfs
 URL: https://zfsonlinux.org/
+VCS: https://github.com/openzfs/zfs
 Conflicts: fuse-zfs
 
 Source0: %name-%version.tar
