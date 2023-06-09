@@ -2,7 +2,7 @@
 %global _localstatedir %_var
 
 Name: zfs
-Version: 2.1.9
+Version: 2.1.12
 Release: alt1
 Summary: ZFS on Linux
 License: CDDL-1.0
@@ -12,8 +12,6 @@ VCS: https://github.com/openzfs/zfs
 Conflicts: fuse-zfs
 
 Source0: %name-%version.tar
-Source1: gitrevision.h
-Patch1: zfs-2.1.0-import-by-disk-id.patch
 
 BuildRequires: libblkid-devel libssl-devel libudev-devel libuuid-devel python3-devel zlib-devel rpm-build-kernel libtirpc-devel
 
@@ -64,9 +62,7 @@ This package contains ZFS modules sources for Linux kernel.
 
 %prep
 %setup -q
-%patch1 -p1
 sed -i 's|datarootdir|libdir|' lib/libzfs/Makefile.am
-install -m0644 %SOURCE1 include/zfs_gitrev.h
 
 %build
 %autoreconf
